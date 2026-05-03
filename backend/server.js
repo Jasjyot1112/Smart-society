@@ -28,6 +28,11 @@ const marketplaceRoutes = require('./routes/marketplaceRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
+const sosRoutes = require('./routes/sosRoutes');
+const staffRoutes = require('./routes/staffRoutes');
+const vehicleRoutes = require('./routes/vehicleRoutes');
+const pollRoutes = require('./routes/pollRoutes');
+const documentRoutes = require('./routes/documentRoutes');
 const sanitize = require('./middleware/sanitize');
 const { startBookingScheduler } = require('./utils/bookingScheduler');
 
@@ -91,6 +96,11 @@ app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/sos', sosRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/polls', pollRoutes);
+app.use('/api/documents', documentRoutes);
 
 // 404 Handler
 app.use((req, res) => {

@@ -43,7 +43,12 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    // OTP-based password reset
+    resetPasswordOTP: { type: String, select: false },      // hashed 6-digit OTP
+    resetPasswordOTPExpire: Date,
     lastLogin: Date,
+    // Preferred UI language
+    preferredLanguage: { type: String, enum: ['en', 'mr', 'hi'], default: 'en' },
 
     // Refresh token (hashed)
     refreshToken: { type: String, select: false },
@@ -86,12 +91,13 @@ userSchema.methods.getSignedJwtToken = function () {
   );
 };
 
-// Sign long-lived refresh token (7 days)
-userSchema.methods.getRefreshToken = function () {
+// Sign long-lived refresh token (7 or 30 days based on rememberMe)
+userSchema.methods.getRefreshToken = function (rememberMe = false) {
+  const expiry = rememberMe ? '30d' : (process.env.JWT_REFRESH_EXPIRE || '7d');
   return jwt.sign(
     { id: this._id },
     process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh',
-    { expiresIn: '7d' }
+    { expiresIn: expiry }
   );
 };
 

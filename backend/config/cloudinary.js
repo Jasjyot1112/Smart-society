@@ -19,8 +19,9 @@ const uploadReceipt = multer({ storage: fallbackStorage, limits: { fileSize: 5 *
 const uploadComplaintMedia = multer({ storage: fallbackStorage, limits: { fileSize: 10 * 1024 * 1024 } });
 const uploadMarketplaceImage = multer({ storage: fallbackStorage, limits: { fileSize: 5 * 1024 * 1024 } });
 const uploadAnnouncementImage = multer({ storage: fallbackStorage, limits: { fileSize: 8 * 1024 * 1024 } });
+const uploadDocument = multer({ storage: fallbackStorage, limits: { fileSize: 20 * 1024 * 1024 } });
 
 // Provide dummy cloudinary export so existing code using cloudinary.uploader doesn't crash immediately (even though we aren't using it here, other files might import it just in case)
 const cloudinary = { uploader: { destroy: async () => ({ result: 'ok' }) } };
 
-module.exports = { cloudinary, uploadImage, uploadAudio, uploadProfile, uploadReceipt, uploadComplaintMedia, uploadMarketplaceImage, uploadAnnouncementImage };
+module.exports = { cloudinary, uploadImage, uploadAudio, uploadProfile, uploadReceipt, uploadComplaintMedia, uploadMarketplaceImage, uploadAnnouncementImage, uploadDocument };

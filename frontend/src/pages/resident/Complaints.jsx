@@ -3,11 +3,13 @@ import Layout from '../../components/common/Layout';
 import { createComplaint, getMyComplaints } from '../../api/complaintApi';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Plus, X, Mic, MicOff, Image as ImageIcon, Upload, Sparkles } from 'lucide-react';
 
 const statusColors = { pending: 'status-pending', in_progress: 'status-in_progress', resolved: 'status-resolved', rejected: 'status-rejected', closed: 'status-pending' };
 
 const ResidentComplaints = () => {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -89,15 +91,15 @@ const ResidentComplaints = () => {
   };
 
   return (
-    <Layout title="My Complaints">
+    <Layout title={t('complaints.title')}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="section-title">My Complaints</h1>
-            <p className="section-subtitle">Raise and track your complaints</p>
+            <h1 className="section-title">{t('complaints.title')}</h1>
+            <p className="section-subtitle">{t('complaints.subtitle')}</p>
           </div>
           <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2 text-sm py-2.5">
-            <Plus className="w-4 h-4" /> New Complaint
+            <Plus className="w-4 h-4" /> {t('complaints.newComplaint')}
           </button>
         </div>
 
@@ -127,7 +129,7 @@ const ResidentComplaints = () => {
             {complaints.length === 0 && (
               <div className="glass-card p-12 text-center">
                 <p className="text-4xl mb-3">📋</p>
-                <p className="text-slate-400">No complaints raised yet. All good? 😊</p>
+                <p className="text-slate-400">{t('complaints.noComplaints')}</p>
               </div>
             )}
           </div>
@@ -139,7 +141,7 @@ const ResidentComplaints = () => {
             <div className="glass-card p-6 w-full max-w-lg animate-slide-up max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className="font-bold text-white">Raise a Complaint</h3>
+                  <h3 className="font-bold text-white">{t('complaints.newComplaint')}</h3>
                   <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1"><Sparkles className="w-3 h-3 text-purple-400" /> AI will auto-classify your complaint</p>
                 </div>
                 <button onClick={() => setShowForm(false)}><X className="w-4 h-4 text-slate-400" /></button>

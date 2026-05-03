@@ -45,6 +45,11 @@ const visitorSchema = new mongoose.Schema(
       expiresAt: { type: Date },
       isUsed: { type: Boolean, default: false },
     },
+    otpDeliveryMethod: { 
+      type: String, 
+      enum: ['whatsapp', 'sms', 'app', 'none'], 
+      default: 'app' 
+    },
     qrCode: {
       type: String, // base64 or URL
     },

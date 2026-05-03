@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "home": "Home",
+    "bookFacility": "Book Facility",
+    "book": "Book",
+    "complaints": "Complaints",
+    "payments": "Payments",
+    "expenses": "Expenses",
+    "visitors": "Visitors",
+    "marketplace": "Marketplace",
+    "events": "Events",
+    "announcements": "Announcements",
+    "services": "Services",
+    "residents": "Residents",
+    "bookings": "Bookings",
+    "gateEntry": "Gate Entry",
+    "more": "More",
+    "adminPanel": "Admin Panel",
+    "residentPortal": "Resident Portal",
+    "securityDesk": "Security Desk",
+    "myVehicles": "My Vehicles",
+    "documents": "Documents",
+    "polls": "Polls & Surveys",
+    "staff": "Staff",
+    "staffEntry": "Staff Entry",
+    "vehicleSearch": "Vehicle Search"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me (30 days)",
+    "signInBtn": "Sign In",
+    "subtitle": "Sign in to access your portal",
+    "welcomeBack": "Welcome back",
+    "loginFailed": "Login failed. Please try again.",
+    "logout": "Logout"
+  },
+  "payments": {
+    "title": "Maintenance Payments",
+    "subtitle": "View and pay your society maintenance bills",
+    "flat": "Flat",
+    "paidOn": "Paid on",
+    "paid": "PAID",
+    "invoice": "Invoice",
+    "payNow": "Pay Now",
+    "processing": "Processing...",
+    "history": "Payment History",
+    "pendingPayment": "Pending Payment",
+    "lateFee": "Late Fee",
+    "noHistory": "No payment history found."
+  },
+  "security": {
+    "gateEntry": "Gate Entry Options",
+    "chooseMethod": "Choose your entry verification method",
+    "newVisitor": "New Visitor Entry",
+    "registerVisitor": "Register visitor & notify resident",
+    "verifyOtp": "Verify OTP / Exit",
+    "verifyExit": "Verify OTP or log visitor exit",
+    "todaysVisitors": "Today's Visitors",
+    "manageGate": "Manage gate entries and monitor exits",
+    "searchPlaceholder": "Search by Flat Number or Name...",
+    "refresh": "Refresh",
+    "markExit": "Mark Exit",
+    "noRecords": "No visitor records today",
+    "status": {
+      "pending": "Pending",
+      "entered": "Entered",
+      "exited": "Exited",
+      "denied": "Denied"
+    }
+  },
+  "complaints": {
+    "title": "My Complaints",
+    "subtitle": "Raise and track your complaints",
+    "newComplaint": "New Complaint",
+    "noComplaints": "No complaints raised yet. All good? 😊"
+  }
+}

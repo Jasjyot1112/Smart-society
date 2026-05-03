@@ -4,6 +4,7 @@ const { createOTPObject, verifyOTP } = require('../services/otpService');
 const { generateVisitorQR } = require('../services/qrService');
 const { createNotification } = require('../services/notificationService');
 const { sendVisitorOTP } = require('../services/emailService');
+const { sendWhatsAppOTP } = require('../services/whatsappService');
 const { emitToUser } = require('../config/socket');
 const { logAction } = require('../services/auditService');
 
@@ -11,6 +12,8 @@ const { logAction } = require('../services/auditService');
 // @route   POST /api/visitors/pre-approve
 const preApproveVisitor = async (req, res) => {
   const { name, phone, purpose, vehicleNumber, activeUntil } = req.body;
+
+  const otpObj = createOTPObject(); // 6-digit PIN for Fast Track
 
   const visitor = await Visitor.create({ society: req.user.society,
     name,
@@ -24,6 +27,7 @@ const preApproveVisitor = async (req, res) => {
     preApproved: true,
     preApprovedUntil: activeUntil || new Date(Date.now() + 24 * 60 * 60 * 1000), // default 24h
     vehicleNumber,
+    otp: otpObj, // Use this as the Entry PIN
     approvedAt: new Date(),
     auditLog: [{ action: 'Pre-Approved created', performedBy: req.user._id, notes: `Valid until ${activeUntil}` }],
   });
@@ -85,20 +89,37 @@ const createVisitorRequest = async (req, res) => {
       data: exactPreApproved,
     });
   }
+  // ── Generate OTP & Delivery ───────────────────────────────────────────────
+  const otpObj = createOTPObject();
+  otpObj.expiresAt = new Date(Date.now() + 5 * 60 * 1000); // Override to 5 minutes
 
-  const visitor = await Visitor.create({ society: req.user.society,
+  const visitor = await Visitor.create({ 
+    society: req.user.society,
     name, phone, purpose: purpose || 'guest', flatNumber, wing,
     resident: resident._id,
     guard: req.user._id,
     status: 'pending',
     vehicleNumber, notes,
+    otp: otpObj,
     auditLog: [{ action: 'Request created', performedBy: req.user._id }],
   });
+
+  // Try WhatsApp -> fallback to SMS
+  const deliveryMethod = await sendWhatsAppOTP(
+    resident.phone || '', // Needs resident phone
+    name,
+    flatNumber,
+    otpObj.code,
+    visitor._id.toString()
+  );
+
+  visitor.otpDeliveryMethod = deliveryMethod;
+  await visitor.save();
 
   await createNotification({
     userId: resident._id,
     title: '🚪 Visitor at Gate',
-    message: `${name} is at the gate waiting for approval.`,
+    message: `${name} is at the gate. OTP: ${otpObj.code}`,
     type: 'visitor_request',
     link: '/resident/visitors',
     relatedId: visitor._id,
@@ -106,13 +127,18 @@ const createVisitorRequest = async (req, res) => {
   });
 
   emitToUser(resident._id.toString(), 'visitorRequest', {
-    visitorId: visitor._id, visitorName: name, phone, purpose, guardName: req.user.name
+    visitorId: visitor._id, visitorName: name, phone, purpose, guardName: req.user.name,
+    otpDeliveryMethod: deliveryMethod
   });
 
   res.status(201).json({
     success: true,
-    message: 'Visitor request sent to resident',
-    data: { visitorId: visitor._id, residentName: resident.name },
+    message: 'Visitor request sent',
+    data: { 
+      visitorId: visitor._id, 
+      residentName: resident.name,
+      otpDeliveryMethod: deliveryMethod
+    },
   });
 };
 
@@ -184,6 +210,43 @@ const verifyQRCode = async (req, res) => {
   res.status(200).json({ success: true, message: 'QR verified. Visitor may enter.', data: visitor });
 };
 
+// @desc    Fast Track Entry by PIN (Guard)
+// @route   POST /api/visitors/fast-track
+const fastTrackEntry = async (req, res) => {
+  const { pin } = req.body;
+  if (!pin) return res.status(400).json({ success: false, message: 'Please provide the 6-digit entry PIN' });
+
+  const visitor = await Visitor.findOne({
+    society: req.user.society,
+    status: 'approved',
+    preApproved: true,
+    'otp.code': pin,
+    'otp.isUsed': false,
+  });
+
+  if (!visitor) {
+    return res.status(404).json({ success: false, message: 'Invalid or expired Fast-Track PIN' });
+  }
+
+  visitor.status = 'entered';
+  visitor.entryTime = new Date();
+  visitor.otp.isUsed = true;
+  visitor.guard = req.user._id;
+  visitor.auditLog.push({ action: 'Entered via Fast-Track PIN', performedBy: req.user._id });
+  await visitor.save();
+
+  await createNotification({
+    userId: visitor.resident,
+    title: 'Pre-Approved Visitor Arrived',
+    message: `${visitor.name} has arrived at the gate via Fast-Track PIN.`,
+    type: 'visitor_entered',
+  });
+
+  await logAction(req.user._id, 'visitor.entered', 'Visitor', visitor._id, { method: 'PIN' }, req);
+
+  res.status(200).json({ success: true, message: 'PIN verified. Visitor may enter.', data: visitor });
+};
+
 // @desc    Mark exit time (Guard)
 // @route   PUT /api/visitors/:id/exit
 const markExit = async (req, res) => {
@@ -243,4 +306,4 @@ const getVisitor = async (req, res) => {
   res.status(200).json({ success: true, data: visitor });
 };
 
-module.exports = { preApproveVisitor, createVisitorRequest, respondToVisitor, verifyQRCode, markExit, getVisitors, getVisitor };
+module.exports = { preApproveVisitor, createVisitorRequest, respondToVisitor, verifyQRCode, fastTrackEntry, markExit, getVisitors, getVisitor };

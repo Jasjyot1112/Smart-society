@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sendEmail } = require('../services/emailService');
 
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh';
 
@@ -28,7 +29,7 @@ const register = async (req, res) => {
 // @desc    Login user — returns access + refresh tokens
 // @route   POST /api/auth/login
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
 
   const user = await User.findOne({ email }).select('+password');
   if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -37,9 +38,9 @@ const login = async (req, res) => {
   const isMatch = await user.matchPassword(password);
   if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
-  // Access + refresh tokens
+  // Access + refresh tokens — pass rememberMe to extend refresh token to 30d
   const token = user.getSignedJwtToken();
-  const refreshToken = user.getRefreshToken();
+  const refreshToken = user.getRefreshToken(!!rememberMe);
 
   // Hash and store refresh token
   const hashedRefresh = await bcrypt.hash(refreshToken, 10);
@@ -71,6 +72,7 @@ const login = async (req, res) => {
       flatNumber: user.flatNumber,
       wing: user.wing,
       profilePic: user.profilePic,
+      preferredLanguage: user.preferredLanguage,
     },
   });
 };
@@ -102,7 +104,7 @@ const refresh = async (req, res) => {
 
     res.status(200).json({ success: true, token: newToken, refreshToken: newRefresh });
   } catch {
-    return res.status(401).json({ success: false, message: 'Refresh token expired or invalid' });
+    return res.status(401).json({ success: false, message: 'Session expired. Please log in again.' });
   }
 };
 
@@ -148,4 +150,111 @@ const updateProfile = async (req, res) => {
   res.status(200).json({ success: true, data: user });
 };
 
-module.exports = { register, login, refresh, logout, getMe, changePassword, updateProfile };
+// @desc    Forgot Password — send OTP to email
+// @route   POST /api/auth/forgot-password
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  // Always respond with success to prevent email enumeration
+  if (!user) {
+    return res.status(200).json({
+      success: true,
+      message: 'If an account with this email exists, an OTP has been sent.',
+    });
+  }
+
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const hashedOTP = await bcrypt.hash(otp, 10);
+  const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+  await User.findByIdAndUpdate(user._id, {
+    resetPasswordOTP: hashedOTP,
+    resetPasswordOTPExpire: expiry,
+  });
+
+  // Send OTP email
+  await sendEmail({
+    to: user.email,
+    subject: '[Smart Society] Password Reset OTP',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 28px; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 22px;">🔐 Password Reset</h1>
+        </div>
+        <div style="padding: 28px; background: #f8fafc; border-radius: 0 0 10px 10px;">
+          <p style="color: #374151;">Hi <strong>${user.name}</strong>,</p>
+          <p style="color: #374151;">Use this OTP to reset your Smart Society password:</p>
+          <div style="text-align: center; margin: 28px 0;">
+            <div style="background: #1e293b; display: inline-block; padding: 16px 32px; border-radius: 10px; letter-spacing: 10px; font-size: 32px; font-weight: 700; color: #818cf8; font-family: monospace;">
+              ${otp}
+            </div>
+          </div>
+          <p style="color: #ef4444; font-size: 14px;">⚠️ This OTP expires in 15 minutes. Do not share it with anyone.</p>
+          <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">If you did not request this, please ignore this email. Your password will remain unchanged.</p>
+        </div>
+      </div>
+    `,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'If an account with this email exists, an OTP has been sent.',
+  });
+};
+
+// @desc    Reset Password using OTP
+// @route   POST /api/auth/reset-password
+const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ success: false, message: 'Email, OTP, and new password are required' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+  }
+
+  const user = await User.findOne({
+    email: email.toLowerCase(),
+    resetPasswordOTPExpire: { $gt: new Date() },
+  }).select('+resetPasswordOTP');
+
+  if (!user || !user.resetPasswordOTP) {
+    return res.status(400).json({ success: false, message: 'OTP is invalid or has expired. Please request a new one.' });
+  }
+
+  const isOTPValid = await bcrypt.compare(otp.trim(), user.resetPasswordOTP);
+  if (!isOTPValid) {
+    return res.status(400).json({ success: false, message: 'Invalid OTP. Please check and try again.' });
+  }
+
+  // Update password and clear OTP fields
+  user.password = newPassword;
+  user.resetPasswordOTP = undefined;
+  user.resetPasswordOTPExpire = undefined;
+  user.refreshToken = null; // Invalidate all active sessions
+  await user.save();
+
+  res.status(200).json({ success: true, message: 'Password reset successfully. Please log in with your new password.' });
+};
+
+// @desc    Update preferred language
+// @route   PATCH /api/auth/language
+const updateLanguage = async (req, res) => {
+  const { language } = req.body;
+  const allowed = ['en', 'mr', 'hi'];
+  if (!allowed.includes(language)) {
+    return res.status(400).json({ success: false, message: 'Invalid language code. Allowed: en, mr, hi' });
+  }
+  await User.findByIdAndUpdate(req.user._id, { preferredLanguage: language });
+  res.status(200).json({ success: true, message: 'Language preference saved', language });
+};
+
+module.exports = {
+  register, login, refresh, logout, getMe, changePassword, updateProfile,
+  forgotPassword, resetPassword, updateLanguage,
+};

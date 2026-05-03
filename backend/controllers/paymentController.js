@@ -8,17 +8,32 @@ const { logAction } = require('../services/auditService');
 
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || '';
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
+
+/**
+ * Razorpay is considered configured ONLY when:
+ * - Both keys are present
+ * - Keys don't contain placeholder patterns (xxxx, your_, xxxxxxxx)
+ * - Key ID starts with the real rzp_ prefix
+ */
 const isRazorpayConfigured =
   RAZORPAY_KEY_ID &&
-  !RAZORPAY_KEY_ID.includes('xxxx') &&
-  RAZORPAY_KEY_ID.startsWith('rzp_') &&
   RAZORPAY_KEY_SECRET &&
-  !RAZORPAY_KEY_SECRET.includes('xxxx');
+  RAZORPAY_KEY_ID.startsWith('rzp_') &&
+  !RAZORPAY_KEY_ID.includes('xxxx') &&
+  !RAZORPAY_KEY_ID.includes('xxxxxxxx') &&
+  !RAZORPAY_KEY_SECRET.includes('xxxx') &&
+  !RAZORPAY_KEY_SECRET.includes('xxxxxxxx') &&
+  !RAZORPAY_KEY_SECRET.startsWith('your_') &&
+  RAZORPAY_KEY_ID.length > 20 &&
+  RAZORPAY_KEY_SECRET.length > 20;
 
 let razorpay = null;
 if (isRazorpayConfigured) {
   const Razorpay = require('razorpay');
   razorpay = new Razorpay({ key_id: RAZORPAY_KEY_ID, key_secret: RAZORPAY_KEY_SECRET });
+  console.log('✅ Razorpay payment gateway initialized');
+} else {
+  console.warn('⚠️  Razorpay not configured. Add real RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to backend/.env');
 }
 
 // @desc    Create Razorpay order with Late Fee Logic
@@ -26,6 +41,15 @@ if (isRazorpayConfigured) {
 const createOrder = async (req, res) => {
   const { month, year, amount } = req.body;
   const user = req.user;
+
+  // Reject immediately if payment gateway is not configured
+  if (!isRazorpayConfigured) {
+    return res.status(503).json({
+      success: false,
+      message: 'Payment gateway is not configured. Please contact your society admin to set up online payments.',
+      code: 'GATEWAY_NOT_CONFIGURED',
+    });
+  }
 
   const existingPayment = await Payment.findOne({ user: user._id, month, year, status: 'paid' });
   if (existingPayment) {
@@ -44,21 +68,21 @@ const createOrder = async (req, res) => {
   const totalAmountToPay = amount + lateFee;
 
   const receiptId = `rcpt_${user._id}_${month}_${year}`;
-  let orderId, currency = 'INR';
+  const currency = 'INR';
 
-  if (isRazorpayConfigured) {
-    const options = {
-      amount: totalAmountToPay * 100, // in paise
-      currency,
-      receipt: receiptId,
-      notes: { userId: user._id.toString(), flatNumber: user.flatNumber || '', month: month.toString(), year: year.toString() },
-    };
-    const order = await razorpay.orders.create(options);
-    orderId = order.id;
-  } else {
-    // Graceful fallback if keys not configured - though frontend will warn user
-    orderId = `order_DEMO_${Date.now()}`;
-  }
+  const options = {
+    amount: totalAmountToPay * 100, // in paise
+    currency,
+    receipt: receiptId,
+    notes: {
+      userId: user._id.toString(),
+      flatNumber: user.flatNumber || '',
+      month: month.toString(),
+      year: year.toString(),
+    },
+  };
+
+  const order = await razorpay.orders.create(options);
 
   await Payment.findOneAndUpdate(
     { society: user.society, user: user._id, month, year },
@@ -70,7 +94,7 @@ const createOrder = async (req, res) => {
       month,
       year,
       status: 'pending',
-      razorpayOrderId: orderId,
+      razorpayOrderId: order.id,
       receipt: receiptId,
       flatNumber: user.flatNumber,
       wing: user.wing,
@@ -81,11 +105,10 @@ const createOrder = async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      orderId,
+      orderId: order.id,
       amount: totalAmountToPay * 100,
       currency,
       keyId: RAZORPAY_KEY_ID,
-      demoMode: !isRazorpayConfigured,
       lateFee,
       userInfo: { name: user.name, email: user.email, phone: user.phone },
     },
@@ -97,28 +120,34 @@ const createOrder = async (req, res) => {
 const verifyPayment = async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, month, year } = req.body;
 
-  if (isRazorpayConfigured) {
-    const expectedSignature = crypto
-      .createHmac('sha256', RAZORPAY_KEY_SECRET)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest('hex');
+  if (!isRazorpayConfigured) {
+    return res.status(503).json({
+      success: false,
+      message: 'Payment gateway is not configured.',
+      code: 'GATEWAY_NOT_CONFIGURED',
+    });
+  }
 
-    // Secure timing-safe compare
-    const isSignatureValid = crypto.timingSafeEqual(
-      Buffer.from(expectedSignature, 'utf8'),
-      Buffer.from(razorpay_signature, 'utf8')
-    );
+  const expectedSignature = crypto
+    .createHmac('sha256', RAZORPAY_KEY_SECRET)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+    .digest('hex');
 
-    if (!isSignatureValid) {
-      return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' });
-    }
+  // Secure timing-safe compare
+  const isSignatureValid = crypto.timingSafeEqual(
+    Buffer.from(expectedSignature, 'utf8'),
+    Buffer.from(razorpay_signature, 'utf8')
+  );
+
+  if (!isSignatureValid) {
+    return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' });
   }
 
   const payment = await Payment.findOneAndUpdate(
     { razorpayOrderId: razorpay_order_id },
     {
-      razorpayPaymentId: razorpay_payment_id || `pay_DEMO_${Date.now()}`,
-      razorpaySignature: razorpay_signature || 'demo_signature',
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
       status: 'paid',
       paidAt: new Date(),
     },
@@ -225,6 +254,8 @@ const getDefaulters = async (req, res) => {
   });
 };
 
+const { sendFast2SMS } = require('../services/whatsappService');
+
 // @desc    Send payment reminders to defaulters
 // @route   POST /api/payments/remind
 const sendReminders = async (req, res) => {
@@ -237,7 +268,16 @@ const sendReminders = async (req, res) => {
 
   const emailPromises = defaulters.map(async (user) => {
     const paymentObj = { month, year, amount };
+    
+    // Send Email
     await sendMaintenanceReminder(user, paymentObj).catch(() => {});
+    
+    // Send Fast2SMS WhatsApp/SMS
+    if (user.phone) {
+      const msg = `Smart Society ERP: Dear ${user.name}, your maintenance payment of ₹${amount} for ${month}/${year} is pending. Please pay to avoid late fees.`;
+      await sendFast2SMS(user.phone, msg).catch(() => {});
+    }
+
     await createNotification({
       userId: user._id,
       title: 'Maintenance Payment Due',
@@ -248,7 +288,7 @@ const sendReminders = async (req, res) => {
   });
 
   await Promise.allSettled(emailPromises);
-  res.status(200).json({ success: true, message: `Reminders sent to ${defaulters.length} defaulters.` });
+  res.status(200).json({ success: true, message: `Reminders sent to ${defaulters.length} defaulters via Email & SMS/WhatsApp.` });
 };
 
 module.exports = { createOrder, verifyPayment, downloadInvoice, getMyPayments, getAllPayments, getDefaulters, sendReminders };

@@ -5,18 +5,21 @@ const {
   createVisitorRequest,
   respondToVisitor,
   verifyQRCode,
+  fastTrackEntry,
   markExit,
   getVisitors,
-  getVisitor,
+  getVisitor
 } = require('../controllers/visitorController');
 const { protect, authorize } = require('../middleware/auth');
 
+// Protected routes
 router.use(protect);
 
 router.post('/pre-approve', authorize('resident'), preApproveVisitor);
 router.post('/', authorize('security'), createVisitorRequest);
 router.put('/:id/respond', authorize('resident'), respondToVisitor);
 router.post('/verify-qr', authorize('security'), verifyQRCode);
+router.post('/fast-track', authorize('security'), fastTrackEntry);
 router.put('/:id/exit', authorize('security'), markExit);
 router.get('/', getVisitors);
 router.get('/:id', getVisitor);

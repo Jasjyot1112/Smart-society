@@ -6,3 +6,5 @@ export const verifyQRCode = (data) => API.post('/visitors/verify-qr', data);
 export const markExit = (id) => API.put(`/visitors/${id}/exit`);
 export const getVisitors = (params) => API.get('/visitors', { params });
 export const getVisitor = (id) => API.get(`/visitors/${id}`);
+export const preApproveVisitor = (data) => API.post('/visitors/pre-approve', data);
+export const fastTrackEntry = (data) => API.post('/visitors/fast-track', data);

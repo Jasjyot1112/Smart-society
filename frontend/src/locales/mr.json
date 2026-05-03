@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "dashboard": "डॅशबोर्ड",
+    "home": "मुख्यपृष्ठ",
+    "bookFacility": "सुविधा बुक करा",
+    "book": "बुक करा",
+    "complaints": "तक्रारी",
+    "payments": "देयके",
+    "expenses": "खर्च",
+    "visitors": "अभ्यागत",
+    "marketplace": "मार्केटप्लेस",
+    "events": "कार्यक्रम",
+    "announcements": "घोषणा",
+    "services": "सेवा",
+    "residents": "रहिवासी",
+    "bookings": "बुकिंग",
+    "gateEntry": "गेट एन्ट्री",
+    "more": "अधिक",
+    "adminPanel": "प्रशासन पॅनेल",
+    "residentPortal": "रहिवासी पोर्टल",
+    "securityDesk": "सुरक्षा डेस्क",
+    "myVehicles": "माझी वाहने",
+    "documents": "कागदपत्रे",
+    "polls": "मतदान आणि सर्वेक्षण",
+    "staff": "कर्मचारी",
+    "staffEntry": "कर्मचारी प्रवेश",
+    "vehicleSearch": "वाहन शोध"
+  },
+  "auth": {
+    "signIn": "साइन इन करा",
+    "email": "ईमेल पत्ता",
+    "emailPlaceholder": "तुमचा ईमेल प्रविष्ट करा",
+    "password": "पासवर्ड",
+    "passwordPlaceholder": "तुमचा पासवर्ड प्रविष्ट करा",
+    "forgotPassword": "पासवर्ड विसरलात?",
+    "rememberMe": "लक्षात ठेवा (३० दिवस)",
+    "signInBtn": "साइन इन करा",
+    "subtitle": "तुमच्या पोर्टलवर प्रवेश करण्यासाठी साइन इन करा",
+    "welcomeBack": "पुन्हा स्वागत आहे",
+    "loginFailed": "लॉगिन अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+    "logout": "लॉगआउट"
+  },
+  "payments": {
+    "title": "देखभाल देयके",
+    "subtitle": "तुमची सोसायटी देखभाल बिले पहा आणि भरा",
+    "flat": "फ्लॅट",
+    "paidOn": "या दिवशी दिले",
+    "paid": "भरले",
+    "invoice": "पावती",
+    "payNow": "आता भरा",
+    "processing": "प्रक्रिया करत आहे...",
+    "history": "देयक इतिहास",
+    "pendingPayment": "प्रलंबित देयक",
+    "lateFee": "विलंब शुल्क",
+    "noHistory": "कोणताही देयक इतिहास आढळला नाही."
+  },
+  "security": {
+    "gateEntry": "गेट प्रवेश पर्याय",
+    "chooseMethod": "तुमची प्रवेश पडताळणी पद्धत निवडा",
+    "newVisitor": "नवीन अभ्यागत प्रवेश",
+    "registerVisitor": "अभ्यागत नोंदणी करा आणि रहिवाशाला कळवा",
+    "verifyOtp": "OTP पडताळा / बाहेर पडा",
+    "verifyExit": "OTP पडताळा किंवा अभ्यागत बाहेर पडल्याची नोंद करा",
+    "todaysVisitors": "आजचे अभ्यागत",
+    "manageGate": "गेटवरील प्रवेश व्यवस्थापित करा आणि बाहेर पडण्यावर लक्ष ठेवा",
+    "searchPlaceholder": "फ्लॅट नंबर किंवा नावानुसार शोधा...",
+    "refresh": "रिफ्रेश करा",
+    "markExit": "बाहेर पडल्याची नोंद करा",
+    "noRecords": "आज कोणतीही अभ्यागत नोंद नाही",
+    "status": {
+      "pending": "प्रलंबित",
+      "entered": "आत आले",
+      "exited": "बाहेर गेले",
+      "denied": "नाकारले"
+    }
+  },
+  "complaints": {
+    "title": "माझ्या तक्रारी",
+    "subtitle": "तुमच्या तक्रारी नोंदवा आणि ट्रॅक करा",
+    "newComplaint": "नवीन तक्रार",
+    "noComplaints": "अद्याप कोणतीही तक्रार नोंदवली नाही. सर्व ठीक आहे? 😊"
+  }
+}

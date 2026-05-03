@@ -4,9 +4,11 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import PrivateRoute from './routes/PrivateRoute';
 import RoleRoute from './routes/RoleRoute';
+import './i18n'; // Initialize i18next
 
 // Auth
 import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
 
 // Admin
 import AdminDashboard from './pages/admin/Dashboard';
@@ -17,6 +19,7 @@ import AdminComplaints from './pages/admin/Complaints';
 import AdminPayments from './pages/admin/Payments';
 import AdminExpenses from './pages/admin/Expenses';
 import AdminVisitors from './pages/admin/Visitors';
+import AdminStaff from './pages/admin/Staff';
 
 // Resident
 import ResidentDashboard from './pages/resident/Dashboard';
@@ -25,17 +28,23 @@ import ResidentComplaints from './pages/resident/Complaints';
 import ResidentPayments from './pages/resident/Payments';
 import ResidentExpenses from './pages/resident/Expenses';
 import ResidentVisitors from './pages/resident/Visitors';
+import ResidentSOS from './pages/resident/SOS';
+import ResidentVehicles from './pages/resident/Vehicles';
+import ResidentDocuments from './pages/resident/Documents';
 
 // Security
 import SecurityDashboard from './pages/security/Dashboard';
 import SecurityVisitors from './pages/security/Visitors';
 import SecurityEntry from './pages/security/Entry';
+import SecurityStaffEntry from './pages/security/StaffEntry';
+import SecurityVehicles from './pages/security/Vehicles';
 
 // Community Hub (Unified components for Resident & Admin)
 import Marketplace from './pages/community/Marketplace';
 import Announcements from './pages/community/Announcements';
 import Events from './pages/community/Events';
 import Services from './pages/community/Services';
+import Polls from './pages/community/Polls';
 
 function App() {
   return (
@@ -60,6 +69,7 @@ function App() {
           <Routes>
             {/* Public */}
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
 
             {/* Admin Routes */}
@@ -71,8 +81,11 @@ function App() {
             <Route path="/admin/payments" element={<PrivateRoute><RoleRoute roles={['admin']}><AdminPayments /></RoleRoute></PrivateRoute>} />
             <Route path="/admin/expenses" element={<PrivateRoute><RoleRoute roles={['admin']}><AdminExpenses /></RoleRoute></PrivateRoute>} />
             <Route path="/admin/visitors" element={<PrivateRoute><RoleRoute roles={['admin']}><AdminVisitors /></RoleRoute></PrivateRoute>} />
+            <Route path="/admin/staff" element={<PrivateRoute><RoleRoute roles={['admin']}><AdminStaff /></RoleRoute></PrivateRoute>} />
+            <Route path="/admin/documents" element={<PrivateRoute><RoleRoute roles={['admin']}><ResidentDocuments /></RoleRoute></PrivateRoute>} />
             <Route path="/admin/marketplace" element={<PrivateRoute><RoleRoute roles={['admin']}><Marketplace /></RoleRoute></PrivateRoute>} />
             <Route path="/admin/announcements" element={<PrivateRoute><RoleRoute roles={['admin']}><Announcements /></RoleRoute></PrivateRoute>} />
+            <Route path="/admin/polls" element={<PrivateRoute><RoleRoute roles={['admin']}><Polls /></RoleRoute></PrivateRoute>} />
             <Route path="/admin/events" element={<PrivateRoute><RoleRoute roles={['admin']}><Events /></RoleRoute></PrivateRoute>} />
             <Route path="/admin/services" element={<PrivateRoute><RoleRoute roles={['admin']}><Services /></RoleRoute></PrivateRoute>} />
 
@@ -84,8 +97,12 @@ function App() {
             <Route path="/resident/payments" element={<PrivateRoute><RoleRoute roles={['resident']}><ResidentPayments /></RoleRoute></PrivateRoute>} />
             <Route path="/resident/expenses" element={<PrivateRoute><RoleRoute roles={['resident']}><ResidentExpenses /></RoleRoute></PrivateRoute>} />
             <Route path="/resident/visitors" element={<PrivateRoute><RoleRoute roles={['resident']}><ResidentVisitors /></RoleRoute></PrivateRoute>} />
+            <Route path="/resident/vehicles" element={<PrivateRoute><RoleRoute roles={['resident']}><ResidentVehicles /></RoleRoute></PrivateRoute>} />
+            <Route path="/resident/documents" element={<PrivateRoute><RoleRoute roles={['resident', 'admin']}><ResidentDocuments /></RoleRoute></PrivateRoute>} />
+            <Route path="/resident/sos" element={<PrivateRoute><RoleRoute roles={['resident']}><ResidentSOS /></RoleRoute></PrivateRoute>} />
             <Route path="/resident/marketplace" element={<PrivateRoute><RoleRoute roles={['resident']}><Marketplace /></RoleRoute></PrivateRoute>} />
             <Route path="/resident/announcements" element={<PrivateRoute><RoleRoute roles={['resident']}><Announcements /></RoleRoute></PrivateRoute>} />
+            <Route path="/resident/polls" element={<PrivateRoute><RoleRoute roles={['resident']}><Polls /></RoleRoute></PrivateRoute>} />
             <Route path="/resident/events" element={<PrivateRoute><RoleRoute roles={['resident']}><Events /></RoleRoute></PrivateRoute>} />
             <Route path="/resident/services" element={<PrivateRoute><RoleRoute roles={['resident']}><Services /></RoleRoute></PrivateRoute>} />
 
@@ -93,6 +110,8 @@ function App() {
             <Route path="/security/dashboard" element={<PrivateRoute><RoleRoute roles={['security']}><SecurityDashboard /></RoleRoute></PrivateRoute>} />
             <Route path="/security/visitors" element={<PrivateRoute><RoleRoute roles={['security']}><SecurityVisitors /></RoleRoute></PrivateRoute>} />
             <Route path="/security/entry" element={<PrivateRoute><RoleRoute roles={['security']}><SecurityEntry /></RoleRoute></PrivateRoute>} />
+            <Route path="/security/staff" element={<PrivateRoute><RoleRoute roles={['security']}><SecurityStaffEntry /></RoleRoute></PrivateRoute>} />
+            <Route path="/security/vehicles" element={<PrivateRoute><RoleRoute roles={['security']}><SecurityVehicles /></RoleRoute></PrivateRoute>} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/login" replace />} />

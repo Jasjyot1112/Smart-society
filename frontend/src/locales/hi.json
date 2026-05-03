@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "home": "होम",
+    "bookFacility": "सुविधा बुक करें",
+    "book": "बुक करें",
+    "complaints": "शिकायतें",
+    "payments": "भुगतान",
+    "expenses": "खर्च",
+    "visitors": "आगंतुक",
+    "marketplace": "मार्केटप्लेस",
+    "events": "इवेंट्स",
+    "announcements": "घोषणाएँ",
+    "services": "सेवाएँ",
+    "residents": "निवासी",
+    "bookings": "बुकिंग",
+    "gateEntry": "गेट एंट्री",
+    "more": "अधिक",
+    "adminPanel": "एडमिन पैनल",
+    "residentPortal": "निवासी पोर्टल",
+    "securityDesk": "सुरक्षा डेस्क",
+    "myVehicles": "मेरे वाहन",
+    "documents": "दस्तावेज़",
+    "polls": "पोल और सर्वेक्षण",
+    "staff": "स्टाफ",
+    "staffEntry": "स्टाफ एंट्री",
+    "vehicleSearch": "वाहन खोज"
+  },
+  "auth": {
+    "signIn": "साइन इन करें",
+    "email": "ईमेल पता",
+    "emailPlaceholder": "अपना ईमेल दर्ज करें",
+    "password": "पासवर्ड",
+    "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "rememberMe": "मुझे याद रखें (30 दिन)",
+    "signInBtn": "साइन इन करें",
+    "subtitle": "अपने पोर्टल तक पहुंचने के लिए साइन इन करें",
+    "welcomeBack": "वापसी पर स्वागत है",
+    "loginFailed": "लॉगिन विफल। कृपया पुनः प्रयास करें।",
+    "logout": "लॉगआउट"
+  },
+  "payments": {
+    "title": "रखरखाव भुगतान",
+    "subtitle": "अपने सोसायटी रखरखाव बिल देखें और भुगतान करें",
+    "flat": "फ्लैट",
+    "paidOn": "को भुगतान किया",
+    "paid": "भुगतान किया",
+    "invoice": "रसीद",
+    "payNow": "अभी भुगतान करें",
+    "processing": "प्रोसेस हो रहा है...",
+    "history": "भुगतान इतिहास",
+    "pendingPayment": "लंबित भुगतान",
+    "lateFee": "विलंब शुल्क",
+    "noHistory": "कोई भुगतान इतिहास नहीं मिला।"
+  },
+  "security": {
+    "gateEntry": "गेट प्रवेश विकल्प",
+    "chooseMethod": "अपनी प्रवेश सत्यापन विधि चुनें",
+    "newVisitor": "नया आगंतुक प्रवेश",
+    "registerVisitor": "आगंतुक पंजीकृत करें और निवासी को सूचित करें",
+    "verifyOtp": "OTP सत्यापित करें / बाहर निकलें",
+    "verifyExit": "OTP सत्यापित करें या आगंतुक के बाहर निकलने को दर्ज करें",
+    "todaysVisitors": "आज के आगंतुक",
+    "manageGate": "गेट प्रविष्टियों का प्रबंधन करें और निकास की निगरानी करें",
+    "searchPlaceholder": "फ्लैट नंबर या नाम से खोजें...",
+    "refresh": "रिफ्रेश करें",
+    "markExit": "निकास दर्ज करें",
+    "noRecords": "आज कोई आगंतुक रिकॉर्ड नहीं",
+    "status": {
+      "pending": "लंबित",
+      "entered": "अंदर आए",
+      "exited": "बाहर गए",
+      "denied": "अस्वीकृत"
+    }
+  },
+  "complaints": {
+    "title": "मेरी शिकायतें",
+    "subtitle": "अपनी शिकायतें दर्ज करें और ट्रैक करें",
+    "newComplaint": "नई शिकायत",
+    "noComplaints": "अभी तक कोई शिकायत नहीं की गई है। सब ठीक है? 😊"
+  }
+}

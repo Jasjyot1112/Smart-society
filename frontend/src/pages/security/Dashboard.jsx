@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../../components/common/Layout';
 import { createVisitorRequest } from '../../api/visitorApi';
 import toast from 'react-hot-toast';
@@ -10,6 +10,15 @@ const SecurityDashboard = () => {
   const [form, setForm] = useState({ name: '', phone: '', flatNumber: '', wing: '', purpose: 'guest', vehicleNumber: '', notes: '' });
   const [submitting, setSubmitting] = useState(false);
   const [lastRequest, setLastRequest] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+
+  useEffect(() => {
+    let timer;
+    if (lastRequest && timeLeft > 0) {
+      timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [lastRequest, timeLeft]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,9 +30,10 @@ const SecurityDashboard = () => {
       setLastRequest({
         ...form,
         residentName: res.data.data.residentName,
-        demoOTP: res.data.data.demoOTP,
+        otpDeliveryMethod: res.data.data.otpDeliveryMethod,
         sentAt: new Date(),
       });
+      setTimeLeft(300); // Reset timer
       setForm({ name: '', phone: '', flatNumber: '', wing: '', purpose: 'guest', vehicleNumber: '', notes: '' });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to send request');
@@ -51,11 +61,21 @@ const SecurityDashboard = () => {
               <div><span className="text-slate-500">Visitor:</span> {lastRequest.name}</div>
               <div><span className="text-slate-500">Flat:</span> {lastRequest.wing ? `${lastRequest.wing}-${lastRequest.flatNumber}` : lastRequest.flatNumber}</div>
               <div><span className="text-slate-500">Resident:</span> {lastRequest.residentName}</div>
-              <div><span className="text-slate-500">Time:</span> {lastRequest.sentAt?.toLocaleTimeString()}</div>
+              <div><span className="text-slate-500">Sent Via:</span> <span className="uppercase text-primary-400 font-medium">{lastRequest.otpDeliveryMethod || 'APP'}</span></div>
             </div>
 
-            <div className="mt-3 p-4 rounded-xl bg-amber-900/10 border border-amber-600/40 text-center">
-              <p className="text-sm text-amber-400 font-medium">⏳ Waiting for Resident Approval</p>
+            <div className="mt-3 p-4 rounded-xl bg-amber-900/10 border border-amber-600/40 text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 h-1 bg-amber-500/50 transition-all duration-1000 linear" style={{ width: `${(timeLeft / 300) * 100}%` }} />
+              <p className="text-sm text-amber-400 font-medium flex items-center justify-center gap-2">
+                ⏳ Waiting for Resident Approval
+                {timeLeft > 0 ? (
+                  <span className="text-xs bg-amber-500/20 px-2 py-0.5 rounded-md font-mono">
+                    {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                  </span>
+                ) : (
+                  <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-md">Expired</span>
+                )}
+              </p>
               <p className="text-xs text-slate-400 mt-1">Please ask the visitor to wait until the resident provides the 6-digit OTP code.</p>
             </div>
           </div>
